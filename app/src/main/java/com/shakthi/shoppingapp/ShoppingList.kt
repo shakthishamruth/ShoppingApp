@@ -4,13 +4,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,15 +51,13 @@ fun ShoppingListApp() {
     var itemName by remember { mutableStateOf("") }
     var itemQuantity by remember { mutableStateOf("") }
 
-
     Column(
         modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center
     ) {
 
         Text(
-            text = "Shopping List",
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
+            text = "Shopping List", modifier = Modifier
+                .align(Alignment.Start)
                 .padding(16.dp)
         )
 
@@ -92,8 +91,7 @@ fun ShoppingListApp() {
     Column(modifier = Modifier.fillMaxSize()) {
         Spacer(modifier = Modifier.weight(1f)) // pushes content to bottom
         Button(
-            onClick = { showDialog = true },
-            modifier = Modifier
+            onClick = { showDialog = true }, modifier = Modifier
                 .align(Alignment.End)
                 .padding(16.dp)
         ) {
@@ -122,6 +120,7 @@ fun ShoppingListApp() {
                                 sItems = sItems + newItem
                                 showDialog = false
                                 itemName = ""
+                                itemQuantity = ""
                             }
                         }) {
                         Text("Add")
@@ -141,8 +140,8 @@ fun ShoppingListApp() {
                         singleLine = true,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp)
-                    )
+                            .padding(8.dp),
+                        placeholder = { Text("Enter item name") })
 
                     OutlinedTextField(
                         value = itemQuantity,
@@ -151,6 +150,7 @@ fun ShoppingListApp() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp),
+                        placeholder = { Text("Enter quantity") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                 }
@@ -170,34 +170,61 @@ fun ShoppingItemEditor(item: ShoppingItem, onEditComplete: (String, Int) -> Unit
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(
+                horizontal = 12.dp, vertical = 8.dp
+            ),  // horizontal padding a bit bigger than vertical
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column() {
+        Column(
+            modifier = Modifier.weight(1f) // take remaining width, push button to the end
+        ) {
             BasicTextField(
                 value = editedName,
                 onValueChange = { editedName = it },
                 singleLine = true,
                 modifier = Modifier
-                    .wrapContentSize()
-                    .padding(8.dp)
-            )
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),  // spacing between fields
+                decorationBox = { innerTextField ->
+                    // Add border & padding for nicer input UI
+                    Box(
+                        Modifier
+                            .background(Color(0xFFF0F0F0), shape = RoundedCornerShape(4.dp))
+                            .padding(8.dp)
+                    ) {
+                        innerTextField()
+                    }
+                })
 
             BasicTextField(
                 value = editedQuantity,
                 onValueChange = { editedQuantity = it },
                 singleLine = true,
-                modifier = Modifier
-                    .wrapContentSize()
-                    .padding(8.dp)
-            )
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                decorationBox = { innerTextField ->
+                    Box(
+                        Modifier
+                            .background(Color(0xFFF0F0F0), shape = RoundedCornerShape(4.dp))
+                            .padding(8.dp)
+                    ) {
+                        innerTextField()
+                    }
+                })
         }
 
-        Button(onClick = {
-            isEditing = false
-            onEditComplete(editedName, editedQuantity.toIntOrNull() ?: 1)
-        }) { Text("SAVE") }
+        Spacer(modifier = Modifier.width(16.dp)) // gap between inputs and button
+
+        Button(
+            onClick = {
+                isEditing = false
+                onEditComplete(editedName, editedQuantity.toIntOrNull() ?: 1)
+            }) {
+            Text("SAVE")
+        }
     }
+
 }
 
 @Composable
@@ -208,15 +235,26 @@ fun ShoppingListItem(
 ) {
     Row(
         modifier = Modifier
-            .padding(8.dp)
             .fillMaxWidth()
+            .padding(8.dp)
             .border(
-                border = BorderStroke(2.dp, Color.Black), shape = RoundedCornerShape(20)
-            )
+                BorderStroke(2.dp, Color.Black), shape = RoundedCornerShape(20)
+            ), verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = item.name, modifier = Modifier.padding(8.dp))
-        Text(text = "Qty: ${item.quantity}", modifier = Modifier.padding(8.dp))
-        Row(modifier = Modifier.padding(8.dp)) {
+        // Texts take remaining space, with some spacing between them
+        Text(
+            text = item.name, modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp, end = 8.dp)
+        )
+        Text(
+            text = "Qty: ${item.quantity}", modifier = Modifier.padding(end = 16.dp)
+        )
+
+        // Icon buttons aligned at the end
+        Row(
+            modifier = Modifier.padding(end = 8.dp), verticalAlignment = Alignment.CenterVertically
+        ) {
             IconButton(onClick = onEditClick) {
                 Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit")
             }
